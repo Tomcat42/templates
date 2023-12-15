@@ -5,10 +5,60 @@ model: ME81H
 image: /assets/device_images/ME81H.webp
 template9: '{"NAME":"ME81H Thermostat","GPIO":[1,1,1,1,1,1,0,0,1,1,1,1,1,0],"FLAG":0,"BASE":54}' 
 link: https://www.aliexpress.com/item/4000398480147.html
-link2: 
+link2: https://forum.iobroker.net/topic/47322/raumthermostat-me81h-31-wifi-tuya-tasmota-flashen
+link3: https://github.com/klausahrenberg/WThermostatBeca
 mlink: https://www.alibaba.com/product-detail/heating-thermostat-WiFi-ME81-room-thermostat_62398877565.html
 flash: serial
 category: misc
 type: Thermostat
 standard: eu
 ---
+Note:
+- since Version 1.4 on some devices the W701 chipset is used, the module can be replaced by TYWE3S.
+- some Modules without wifi miss only the tuya module (others miss lots of SMD parts)
+- alternative non-tuya firmware: WThermostatBeca
+
+## Known dpIds
+please check and correct them; they are copied from MOES WHT-HY609 and (partially) adapted from the iobroker thread
+
+| dpId    | Function        | Data-type | Remarks 
+|---------|-----------------|-----------|----------------
+|1        | device power    | boolean   |
+|2        | target temp     | integer   | 10:1 e.g. `215` = 21.5 °C<br>`180` = 18.0 °C only .5 steps
+|3        | current temp    | integer   | 10:1
+|4        | mode            | enum      | `0` = Manual, `1` = Auto/Program, `2` = Away
+|40        | child lock      | boolean   | 
+|102      | status relay    | boolean   | readonly
+|104      | Days away       | integer   | between 1 and 30
+|105      | Temp while away | integer   | values are 1:1, e.g. `21` = 21 °C"
+|109      | Parameter A1    | integer   | Temp calibration (10:1)
+|110      | Parameter A2    | integer   | working difference (10:1)
+|111      | Parameter AC    | integer   | 
+|112      | Parameter AB    | integer   |
+|113      | Parameter AA    | integer   |
+|114      | Parameter A9    | integer   |
+|115      | Parameter A8    | integer   |
+|118      | Parameter A7    | enum      | `0`: 5+2 (Mo-Fr,Sa+So), `1`: 6+1 (Mo-Sa,So), `2`: 7   (Mo-So)
+|119      | time program    | string[18]| Mo-Fr Part1
+|120      | time program    | string[18]| Sa+So Part2
+|121      | time program    | string[18]| Mo-Fr Part1
+|122      | time program    | string[18]| Sa+So Part2
+|         |                 | 9x Hex[2] | e.g. "06001408000F0C0014"
+|         |                 | dpld119   | switch at 06:00 to 20°C
+|         |                 |           | switch at 08:00 to 15°C
+|         |                 |           | switch at 12:00 to 20°C
+
+
+examples:
+- Tuyasend  1,0  - switch device off
+- Tuyasend  1,1  - switch device on
+- TuyaSend1 10,0|1 (0 = Off | 1 = On) - Frost protection function
+- TuyaSend2 19,%var% - set max. temperature limit 
+- Tuyasend2 16,%var% – Tempset:Manual to %var%/10
+- TuyaSend2 26,%var% - set min. temperature limit
+<br>e.g. Tuyasend2 16,200<br>Note: 200 is 20°C
+- TuyaSend2 27,%var% - calibration of measured temperature
+<br>Note: 200 is 20°C
+- Tuyasend2 40,-1 - lock screen/buttons
+- Tuyasend2 40,1  - unlock screen/buttons
+- TuyaSend4 43,0|1|2 - sensor mode (0 = internal sensor | 1 = floor sensor | 2 = both sensors)
